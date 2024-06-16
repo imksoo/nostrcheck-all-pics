@@ -18,23 +18,27 @@ const connection = mysql.createConnection({
   database: MYSQL_DATABASE,
 });
 
+app.use('/media', express.static('media'));
+
 app.get('/', (req, res) => {
   let html = '<html><head><title>Media Files</title>'
+  html += '<style>video {margin: 4px}</style>';
+  html += '<style>img {margin: 4px}</style>';
   html += '</head><body>';
   html += '<h1>Media Files</h1>';
 
-  const query = "SELECT CONCAT('https://nostpic.com/media/', pubkey,'/', filename) AS mediafile FROM mediafiles ORDER BY id DESC";
+  const query = "SELECT CONCAT(pubkey,'/', filename) AS mediafile FROM mediafiles ORDER BY id DESC LIMIT 1000";
   connection.query(query, (err, result) => {
     if (err) {
       console.error('An error occurred while executing the query');
       throw err;
     }
     for (let i = 0; i < result.length; i++) {
-      const file = result[i].mediafile;
+      const file = "media/" + result[i].mediafile;
       if (file.endsWith('.mp4')) {
-        html += `<video preload='metadata' controls style='max-height:300px; max-width:300px;'><source src='${file}' type='video/mp4'></video>`;
+        html += `<video controls style='max-height:300px; max-width:300px;'><source src='${file}' type='video/mp4'></video>`;
       } else {
-        html += `<a href='${file}'><img src='${file}' loading='lazy' style='max-height:300px; max-width:300px;'></a>`;
+        html += `<a href='${file}' target='_blank'><img src='${file}' loading='lazy' style='max-height:300px; max-width:300px;'></a>`;
       }
     }
     html += '</body></html>';
